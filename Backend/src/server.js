@@ -3,7 +3,7 @@ import { ENV } from "./lib/env.js";
 import { connectDB } from "./lib/db.js";
 import cors from "cors";
 import {serve} from "inngest/express"
-import { inngest } from "./lib/inngest.js";
+import { inngest ,functions} from "./lib/inngest.js";
 const app = express();
 app.get("/",(req,res) => {
     res.status(200).json({msg:"success from the backend"})
