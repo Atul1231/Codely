@@ -15,7 +15,7 @@ app.use(express.json())
 // credential = true means the server allows the browser to include cookies on request
 app.use(cors({origin:ENV.CLIENT_URL,credentials:true}))
 
-app.use("/api/inngest" , serve({client:inngest , functions:[]}))
+app.use("/api/inngest" , serve({client:inngest , functions}))
 // console.log("Signing key exists:", !!process.env.INNGEST_SIGNING_KEY);
 
 const ServerConnect = async() =>{
