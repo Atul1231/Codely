@@ -10,7 +10,7 @@ export const protectRoute = [
             // find user by clerk id
             const user = await User.findOne({clerkId});
             if (!user) return res.status(401).json({message:"user not found"});
-            res.user = user;
+            req.user = user;
             next();
         } catch (error) {
             console.error("Error in protectRoute middleware",error);
