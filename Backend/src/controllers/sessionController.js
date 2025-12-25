@@ -20,22 +20,22 @@ export async function createSession(req,res) {
                 custom:{problem,difficulty,sessionId:session._id.toString()},
             }
         });
-        chatClient.channel("messaging",callId,{
+        const channel = chatClient.channel("messaging",callId,{
             name:`${problem} Session`,
             created_by_id:clerkId,
             members:[clerkId]
-        })
+        });
 
         await channel.create()
         res.status(201).json({session})
     } catch (error) {
-        console.log("Error in createSession controller:")
-        
+        console.log("Error in createSession controller:", error.message);
+        res.status(500).json({ message: "Internal Server Error" });
     }
 }
 export async function getActiveSessions(_,res) {
     try {
-        const sessions = (await Session.find({status:"active"})
+        const sessions = await Session.find({status:"active"}
             .populate("host","name profileImage email clerkId"))
             .sort({createdAt:-1})
             .limit(20);
@@ -85,8 +85,15 @@ export async function joinSession(req,res) {
         const clerkId = req.user.clerkId;
 
         const session = await Session.findById(id);
-        if (!session) return res.status(404).json({message:"Session is full"})
-        
+        if (!session) return res.status(404).json({message:"Session not found"});
+        if (session.status !== "active") return res.status(400).json({message:"Session is no longer active"});
+        if (session.host.toString() === userId.toString()) {
+            return res.status(400).json({message:"You cannot join your own session"});
+        }
+        if (session.participant) {
+            return res.status(400).json({message:"Session is full"});
+        }
+
         session.participant = userId
         await session.save()
 

@@ -28,7 +28,7 @@ const sessionSchema = new mongoose.Schema({
         type:String,
         default:"",
     },
-},{timestamp:true})
+},{timestamps:true})
 
 const Session = mongoose.model("Session",sessionSchema)
 
