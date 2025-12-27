@@ -1,24 +1,32 @@
-import { useState } from 'react'
-import { SignedIn, SignedOut, SignInButton, SignOutButton, UserButton } from '@clerk/clerk-react'
-import toast from 'react-hot-toast'
-import { Toaster } from 'react-hot-toast'
+import { useUser } from "@clerk/clerk-react";
+import { Navigate, Route, Routes } from "react-router";
+import HomePage from "./Pages/HomePage";
+import DashboardPage from "./Pages/DashboardPage";
+import ProblemsPage from "./Pages/ProblemsPage";
+import ProblemPage from "./Pages/ProblemPage";
+import SessionPage from "./Pages/SessionPage";
+import { Toaster } from "react-hot-toast";
+
+
 function App() {
-  const [count, setCount] = useState(0)
+  const { isSignedIn, isLoaded } = useUser();
+
+  // this will get rid of the flickering effect
+  if (!isLoaded) return null;
 
   return (
     <>
-     <h1>welcome to my app</h1>
-     <button className='btn btn-primary' onClick={()=> toast.success("This is a success toast")}>Click me</button>
-     <SignedOut>
-      <SignInButton mode='modal' />
-      </SignedOut>
-      <SignedIn>
-        <SignOutButton/>
-      </SignedIn>
-      <UserButton/>
-      <Toaster toastOptions={{duration:3000}}/>
+      <Routes>
+        <Route path="/" element={!isSignedIn ? <HomePage /> : <Navigate to={"/dashboard"} />} />
+        <Route path="/dashboard" element={isSignedIn ? <DashboardPage /> : <Navigate to={"/"} />} />
+        <Route path="/problems" element={isSignedIn ? <ProblemsPage /> : <Navigate to={"/"} />} />
+        <Route path="/problem/:id" element={isSignedIn ? <ProblemPage /> : <Navigate to={"/"} />} />
+        <Route path="/session/:id" element={isSignedIn ? <SessionPage /> : <Navigate to={"/"} />} />
+      </Routes>
+
+      <Toaster toastOptions={{ duration: 3000 }} />
     </>
-  )
+  );
 }
 
-export default App
+export default App;
