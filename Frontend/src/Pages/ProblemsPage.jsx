@@ -1,5 +1,5 @@
 import { Link } from "react-router";
-import Navbar from "../components/NavBar.jsx";
+import Navbar from "../components/Navbar.jsx";
 
 import { PROBLEMS } from "../data/problems";
 import { ChevronRightIcon, Code2Icon } from "lucide-react";
