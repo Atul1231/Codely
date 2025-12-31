@@ -15,7 +15,7 @@ app.use(express.json())
 app.use(cors({
   origin: [
     "http://localhost:5173",
-    "https://codely-app.vercel.app"
+    ENV.CLIENT_URL
   ],
   credentials: true
 }));
