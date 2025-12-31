@@ -33,19 +33,19 @@ export async function createSession(req,res) {
         res.status(500).json({ message: "Internal Server Error" });
     }
 }
-export async function getActiveSessions(_,res) {
-    try {
-        const sessions = await Session.find({status:"active"}
-            .populate("host","name profileImage email clerkId"))
-            .sort({createdAt:-1})
-            .limit(20);
+export async function getActiveSessions(_, res) {
+  try {
+    const sessions = await Session.find({ status: "active" })
+      .populate("host", "name profileImage email clerkId")
+      .populate("participant", "name profileImage email clerkId")
+      .sort({ createdAt: -1 })
+      .limit(20);
 
-            res.status(200).json({sessions})
-    } catch (error) { 
-        console.log("Error in getActiveSessions controller:",error.message);
-        res.status(500).json({message:"Internal Server Error"});
-        
-    }
+    res.status(200).json({ sessions });
+  } catch (error) {
+    console.log("Error in getActiveSessions controller:", error.message);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
 }
 export async function getMyRecentSessions(req,res) {
     try {

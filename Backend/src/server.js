@@ -11,7 +11,26 @@ const app = express();
 
 app.use(express.json())
 // credential = true means the server allows the browser to include cookies on request
-app.use(cors({origin:ENV.CLIENT_URL,credentials:true}))
+const allowedOrigins = [
+  "http://localhost:5173",
+   ENV.CLIENT_URL
+];
+
+app.use(
+  cors({
+    origin: function (origin, callback) {
+      // allow requests with no origin (Postman, curl)
+      if (!origin) return callback(null, true);
+
+      if (allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        callback(new Error("Not allowed by CORS"));
+      }
+    },
+    credentials: true,
+  })
+);
 app.use(clerkMiddleware())   // this adds auth field to  request object req.auth()
 
 
