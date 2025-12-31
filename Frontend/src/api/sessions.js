@@ -1,4 +1,4 @@
-import axiosInstance from "../lib/axios";
+import axiosInstance from "../lib/axios.js";
 
 export const sessionApi = {
   createSession: async (data) => {
@@ -6,12 +6,12 @@ export const sessionApi = {
     return response.data;
   },
 
-  getActiveSessions: async () => {
-    const response = await axiosInstance.get("/sessions/active");
+  getActiveSessions: async (data) => {
+    const response = await axiosInstance.get("/sessions/active", data);
     return response.data;
   },
-  getMyRecentSessions: async () => {
-    const response = await axiosInstance.get("/sessions/my-recent");
+  getMyRecentSessions: async (data) => {
+    const response = await axiosInstance.get("/sessions/my-recent", data);
     return response.data;
   },
 
