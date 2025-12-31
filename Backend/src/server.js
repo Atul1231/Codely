@@ -11,26 +11,15 @@ const app = express();
 
 app.use(express.json())
 // credential = true means the server allows the browser to include cookies on request
-const allowedOrigins = [
-  "http://localhost:5173",
-   ENV.CLIENT_URL
-];
 
-app.use(
-  cors({
-    origin: function (origin, callback) {
-      // allow requests with no origin (Postman, curl)
-      if (!origin) return callback(null, true);
+app.use(cors({
+  origin: [
+    "http://localhost:5173",
+    "https://codely-app.vercel.app"
+  ],
+  credentials: true
+}));
 
-      if (allowedOrigins.includes(origin)) {
-        callback(null, true);
-      } else {
-        callback(new Error("Not allowed by CORS"));
-      }
-    },
-    credentials: true,
-  })
-);
 app.use(clerkMiddleware())   // this adds auth field to  request object req.auth()
 
 
