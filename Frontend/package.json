@@ -17,6 +17,7 @@
     "axios": "^1.12.2",
     "canvas-confetti": "^1.9.3",
     "codely": "file:..",
+    "date-fns": "^4.1.0",
     "lucide-react": "^0.562.0",
     "monaco-editor": "^0.55.1",
     "react": "^19.1.1",
