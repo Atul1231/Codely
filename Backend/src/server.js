@@ -11,28 +11,44 @@ import chatRoutes from "./routes/chatRoutes.js";
 import sessionRoutes from "./routes/sessionRoutes.js";
 
 const app = express();
-// middleware
+
+/* 🔑 REQUIRED FOR CLERK ON RENDER */
+app.set("trust proxy", 1);
+
+/* MIDDLEWARE */
 app.use(express.json());
-// credentials:true meaning?? => server allows a browser to include cookies on request
-app.use(cors({ origin: ENV.CLIENT_URL, credentials: true }));
-app.use("/api",clerkMiddleware()); // this adds auth field to request object: req.auth()
+
+app.use(
+  cors({
+    origin: ENV.CLIENT_URL,
+    credentials: true,
+  })
+);
+
+/* 🔑 CLERK MUST BE GLOBAL */
+app.use(clerkMiddleware());
+
+/* DEBUG (temporary) */
 app.use((req, res, next) => {
-  console.log("AUTH:", req.auth);
+  console.log("AUTH:", req.auth?.userId);
   next();
 });
+
+/* ROUTES */
 app.use("/api/inngest", serve({ client: inngest, functions }));
 app.use("/api/chat", chatRoutes);
 app.use("/api/sessions", sessionRoutes);
 
-app.get("/health", (req, res) => {
+app.get("/health", (_, res) => {
   res.status(200).json({ msg: "api is up and running" });
 });
-
 
 const startServer = async () => {
   try {
     await connectDB();
-    app.listen(ENV.PORT, () => console.log("Server is running on port:", ENV.PORT));
+    app.listen(ENV.PORT, () =>
+      console.log("Server running on port:", ENV.PORT)
+    );
   } catch (error) {
     console.error("💥 Error starting the server", error);
   }
