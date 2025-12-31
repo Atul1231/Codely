@@ -8,28 +8,21 @@ import {clerkMiddleware} from '@clerk/express'
 import chatRoutes from "./routes/chatRoutes.js"
 import sessionRoutes from "./routes/sessionRoutes.js"
 const app = express();
+
+app.use(express.json())
+// credential = true means the server allows the browser to include cookies on request
 app.use(cors({
   origin: [
-    "http://localhost:5173",
     ENV.CLIENT_URL
   ],
   credentials: true
 }));
-app.use(express.json())
-// credential = true means the server allows the browser to include cookies on request
-
-// app.use(clerkMiddleware())   // this adds auth field to  request object req.auth()
-
-
+app.use(clerkMiddleware())   // this adds auth field to  request object req.auth()
 app.use("/api/inngest" , serve({client:inngest , functions}))
 // console.log("Signing key exists:", !!process.env.INNGEST_SIGNING_KEY);
 app.use("/api/chat",chatRoutes)
-app.use(
-  "/api/sessions",
-  clerkMiddleware(),
-  // requireAuth(),
-  sessionRoutes
-);
+app.use("/api/sessions",sessionRoutes)
+
 const ServerConnect = async() =>{
     try{
         await connectDB();
