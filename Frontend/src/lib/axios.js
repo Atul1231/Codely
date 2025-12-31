@@ -7,7 +7,8 @@ const axiosInstance = axios.create({
     baseURL:API_URL,
     withCredentials:true,
 });
-// console.log("AXIOS BASE URL:", import.meta.env.VITE_API_BASE_URL);
+console.log("AXIOS BASE URL (runtime):", import.meta.env.VITE_API_URL);
+
 console.log(axiosInstance.defaults.baseURL);
 
 export default axiosInstance;   
