@@ -13,7 +13,8 @@ app.use(express.json())
 // credential = true means the server allows the browser to include cookies on request
 app.use(cors({
   origin: [
-    "https://codely-app.vercel.app"
+    "http://localhost:5173",
+    "https://codely-app.vercel.app/api"
   ],
   credentials: true
 }));
