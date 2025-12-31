@@ -1,4 +1,4 @@
-import axiosInstance from "../lib/axios.js";
+import axiosInstance from "../lib/axios";
 
 export const sessionApi = {
   createSession: async (data) => {
