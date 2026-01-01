@@ -3,7 +3,7 @@
 A real-time remote interview platform that bridges the gap between candidates and recruiters with live coding, video calls, and automated feedback.
 
 <!-- Add your project banner/hero image here -->
-![Codely Banner](D:/academics/coding/web dev/backend dev/projects/Codely/Frontend/public/Image_for_README.md.png)
+![Codely Banner](./assets/Image_for_README.md.png)
 
 ## 🌐 Live Demo
 
@@ -12,16 +12,14 @@ Experience Codely: [https://codely-app.vercel.app](https://codely-app.vercel.app
 ## 📸 Screenshots
 
 ### Dashboard
-![Dashboard](./assets/dashboard.png)
+![Dashboard](./assets/Dashboard.png)
 
 ### Live Interview Session
-![Interview Session](./assets/interview-session.png)
+![Interview Session](./assets/interview_session.png)
 
 ### Code Editor
-![Code Editor](./assets/code-editor.png)
+![Code Editor](./assets/code_editor.png)
 
-### Video Call Interface
-![Video Call](./assets/video-call.png)
 
 ## ✨ Features
 
@@ -48,7 +46,7 @@ Experience Codely: [https://codely-app.vercel.app](https://codely-app.vercel.app
 
 ### Deployment
 - **Frontend**: Vercel
-- **Backend**: Render & Sevalla (free-tier friendly)
+- **Backend**: Render 
 
 ## 📋 Prerequisites
 
