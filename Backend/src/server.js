@@ -1,11 +1,9 @@
 import express from "express";
 import cors from "cors";
 import { serve } from "inngest/express";
-import { clerkMiddleware } from "@clerk/express";
-
+import authRoutes from "./routes/authRoutes.js";
 import { ENV } from "./lib/env.js";
 import { connectDB } from "./lib/db.js";
-import { inngest, functions } from "./lib/inngest.js";
 
 import chatRoutes from "./routes/chatRoutes.js";
 import sessionRoutes from "./routes/sessionRoutes.js";
@@ -24,18 +22,9 @@ app.use(
     credentials: true,
   })
 );
-
-app.use(clerkMiddleware({
-  secretKey: ENV.CLERK_SECRET_KEY
-}));
-/* DEBUG (temporary) */
-// app.use((req, res, next) => {
-//   console.log("AUTH:", req.auth?.userId);
-//   next();
-// });
+app.use('/api/auth', authRoutes);
 
 /* ROUTES */
-app.use("/api/inngest", serve({ client: inngest, functions }));
 app.use("/api/chat", chatRoutes);
 app.use("/api/sessions", sessionRoutes);
 

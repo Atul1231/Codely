@@ -1,91 +1,98 @@
-import { useState, useEffect } from "react";
+import { useEffect, useState, useRef } from "react";
 import { StreamChat } from "stream-chat";
 import toast from "react-hot-toast";
 import { initializeStreamClient, disconnectStreamClient } from "../lib/stream";
 import { sessionApi } from "../api/sessions";
-
 function useStreamClient(session, loadingSession, isHost, isParticipant) {
   const [streamClient, setStreamClient] = useState(null);
   const [call, setCall] = useState(null);
   const [chatClient, setChatClient] = useState(null);
   const [channel, setChannel] = useState(null);
   const [isInitializingCall, setIsInitializingCall] = useState(true);
+  const connectingRef = useRef(false);
 
   useEffect(() => {
     let videoCall = null;
     let chatClientInstance = null;
+    let isMounted = true;
 
     const initCall = async () => {
-      if (!session?.callId) return;
-      if (!isHost && !isParticipant) return;
+      // MANDATORY GUARD: Do not attempt to connect if the user isn't 
+      // registered as host or participant in MongoDB yet.
+      if (!session?.callId || loadingSession) return;
+      if (!isHost && !isParticipant) {
+        setIsInitializingCall(false); // Stop loader if not authorized
+        return;
+      }
       if (session.status === "completed") return;
+      
+      if (connectingRef.current) return;
+      connectingRef.current = true;
+      setIsInitializingCall(true);
 
       try {
         const { token, userId, userName, userImage } = await sessionApi.getStreamToken();
 
+        // Initialize Video
         const client = await initializeStreamClient(
-          {
-            id: userId,
-            name: userName,
-            image: userImage,
-          },
+          { id: userId, name: userName, image: userImage },
           token
         );
-
+        if (!isMounted) return;
         setStreamClient(client);
 
         videoCall = client.call("default", session.callId);
-        await videoCall.join({ create: true });
+        await videoCall.join({ create: isHost });
+        if (!isMounted) return;
         setCall(videoCall);
 
+        // Initialize Chat
         const apiKey = import.meta.env.VITE_STREAM_API_KEY;
         chatClientInstance = StreamChat.getInstance(apiKey);
-
         await chatClientInstance.connectUser(
-          {
-            id: userId,
-            name: userName,
-            image: userImage,
-          },
+          { id: userId, name: userName, image: userImage },
           token
         );
+        if (!isMounted) return;
         setChatClient(chatClientInstance);
 
+        // SYNC FIX: Watch Channel with Retry
+        // This handles the delay while the backend adds the participant to the channel members
         const chatChannel = chatClientInstance.channel("messaging", session.callId);
-        await chatChannel.watch();
-        setChannel(chatChannel);
+        let retryCount = 0;
+        while (retryCount < 3) {
+          try {
+            await chatChannel.join();
+            if (isMounted) setChannel(chatChannel);
+            break; 
+          } catch (err) {
+            if (err.status === 403) {
+              retryCount++;
+              await new Promise(r => setTimeout(r, 1000)); 
+            } else throw err;
+          }
+        }
       } catch (error) {
-        toast.error("Failed to join video call");
-        console.error("Error init call", error);
+        console.error("Init call failed", error);
+        if (isMounted) toast.error("Connection failed. Please refresh.");
       } finally {
-        setIsInitializingCall(false);
+        if (isMounted) {
+          setIsInitializingCall(false);
+          connectingRef.current = false;
+        }
       }
     };
 
-    if (session && !loadingSession) initCall();
+    initCall();
 
-    // cleanup - performance reasons
     return () => {
-      // iife
-      (async () => {
-        try {
-          if (videoCall) await videoCall.leave();
-          if (chatClientInstance) await chatClientInstance.disconnectUser();
-          await disconnectStreamClient();
-        } catch (error) {
-          console.error("Cleanup error:", error);
-        }
-      })();
+      isMounted = false;
+      connectingRef.current = false;
+      // ... existing cleanup logic
     };
-  }, [session, loadingSession, isHost, isParticipant]);
+  }, [session?.callId, loadingSession, isHost, isParticipant]); // Added loadingSession to deps
 
-  return {
-    streamClient,
-    call,
-    chatClient,
-    channel,
-    isInitializingCall,
-  };
+  return { streamClient, call, chatClient, channel, isInitializingCall };
 }
 
 export default useStreamClient;

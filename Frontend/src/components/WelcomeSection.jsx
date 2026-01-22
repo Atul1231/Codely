@@ -1,8 +1,12 @@
-import { useUser } from "@clerk/clerk-react";
+import { useAuth } from "../context/AuthContext"; // Updated: Using your custom JWT Auth
 import { ArrowRightIcon, SquareTerminal, ZapIcon } from "lucide-react";
 
 function WelcomeSection({ onCreateSession }) {
-  const { user } = useUser();
+  // Updated: Pulling user data from your custom AuthContext
+  const { user } = useAuth();
+
+  // Helper to extract the first name from the full name string
+  const firstName = user?.name ? user.name.split(" ")[0] : "there";
 
   return (
     <div className="relative overflow-hidden">
@@ -10,11 +14,11 @@ function WelcomeSection({ onCreateSession }) {
         <div className="flex items-center justify-between">
           <div>
             <div className="flex items-center gap-3 mb-4">
-              <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-primary to-secondary flex items-center justify-center">
+              <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-primary to-secondary flex items-center justify-center shadow-lg">
                 <SquareTerminal className="w-6 h-6 text-white" />
               </div>
               <h1 className="text-5xl font-black bg-gradient-to-r from-primary via-secondary to-accent bg-clip-text text-transparent">
-                Welcome back, {user?.firstName || "there"}!
+                Welcome back, {firstName}!
               </h1>
             </div>
             <p className="text-xl text-base-content/60 ml-16">
@@ -23,7 +27,7 @@ function WelcomeSection({ onCreateSession }) {
           </div>
           <button
             onClick={onCreateSession}
-            className="group px-8 py-4 bg-gradient-to-r from-primary to-secondary rounded-2xl transition-all duration-200 hover:opacity-90"
+            className="group px-8 py-4 bg-gradient-to-r from-primary to-secondary rounded-2xl transition-all duration-200 hover:opacity-90 shadow-xl active:scale-95"
           >
             <div className="flex items-center gap-3 text-white font-bold text-lg">
               <ZapIcon className="w-6 h-6" />

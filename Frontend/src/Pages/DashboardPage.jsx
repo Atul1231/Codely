@@ -1,5 +1,5 @@
 import { useNavigate } from "react-router";
-import { useUser } from "@clerk/clerk-react";
+import { useAuth } from "../context/AuthContext"; 
 import { useState } from "react";
 import { useActiveSessions, useCreateSession, useMyRecentSessions } from "../hooks/useSessions";
 
@@ -12,7 +12,10 @@ import CreateSessionModal from "../components/CreateSessionModal";
 
 function DashboardPage() {
   const navigate = useNavigate();
-  const { user } = useUser();
+  
+  // Use custom JWT Auth hook
+  const { user } = useAuth(); 
+  
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [roomConfig, setRoomConfig] = useState({ problem: "", difficulty: "" });
 
@@ -32,6 +35,7 @@ function DashboardPage() {
       {
         onSuccess: (data) => {
           setShowCreateModal(false);
+          // Navigate using MongoDB ID
           navigate(`/session/${data.session._id}`);
         },
       }
@@ -41,10 +45,18 @@ function DashboardPage() {
   const activeSessions = activeSessionsData?.sessions || [];
   const recentSessions = recentSessionsData?.sessions || [];
 
+  // Logic to check if the current user is already the host or participant
   const isUserInSession = (session) => {
-    if (!user.id) return false;
+    if (!user?.id && !user?._id) return false;
+    const currentUserId = user.id || user._id;
 
-    return session.host?.clerkId === user.id || session.participant?.clerkId === user.id;
+    return session.host?._id === currentUserId || session.participant?._id === currentUserId;
+  };
+
+  // NEW: Logic to restrict joining if session already has 2 members
+  const isSessionFull = (session) => {
+    // If a participant exists and it's not the current user, the room is full
+    return !!session.participant;
   };
 
   return (
@@ -53,7 +65,6 @@ function DashboardPage() {
         <Navbar />
         <WelcomeSection onCreateSession={() => setShowCreateModal(true)} />
 
-        {/* Grid layout */}
         <div className="container mx-auto px-6 pb-16">
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             <StatsCards
@@ -64,6 +75,7 @@ function DashboardPage() {
               sessions={activeSessions}
               isLoading={loadingActiveSessions}
               isUserInSession={isUserInSession}
+              isSessionFull={isSessionFull} 
             />
           </div>
 

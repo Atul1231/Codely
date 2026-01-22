@@ -1,18 +1,22 @@
 import { chatClient } from "../lib/stream.js";
 
-export async function getStreamToken(req,res) {
+export async function getStreamToken(req, res) {
     try {
-        // use clerkId to access the user in stream not from the mongoDB
-        const token = chatClient.createToken(req.user.clerkId)
+        // Now using the MongoDB _id as the unique identifier for Stream
+        // We convert it to a string because req.user._id is a Mongoose ObjectId
+        const userId = req.user._id.toString();
+        
+        const token = chatClient.createToken(userId);
 
         res.status(200).json({
             token,
-            userId:req.user.clerkId,
-            userName:req.user.name,
-            userImage:req.user.image
-        })
+            userId: userId,
+            userName: req.user.name,
+            // Changed from .image to .profileImage to match your updated User model
+            userImage: req.user.profileImage 
+        });
     } catch (error) {
-        console.error("Error in getStreamToken",error);
-        res.status(500).json({message:"internal server error"});
+        console.error("Error in getStreamToken", error);
+        res.status(500).json({ message: "internal server error" });
     }
 }

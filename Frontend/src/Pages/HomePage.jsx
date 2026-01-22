@@ -1,4 +1,5 @@
-import { Link } from "react-router";
+import { useState } from "react";
+import { Link, useNavigate } from "react-router";
 import {
   ArrowRightIcon,
   CheckIcon,
@@ -7,104 +8,106 @@ import {
   UsersIcon,
   Video,
   Zap,
+  X,
 } from "lucide-react";
-import { SignInButton } from "@clerk/clerk-react";
 import ThemeToggle from "../components/ThemeToggle";
+import { useAuth } from "../context/AuthContext";
+import axiosInstance from "../lib/axios";
+import toast from "react-hot-toast";
 
 function HomePage() {
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isLoginMode, setIsLoginMode] = useState(true);
+  const [formData, setFormData] = useState({ name: "", email: "", password: "" });
+  const [loading, setLoading] = useState(false);
+
+  const { login } = useAuth();
+  const navigate = useNavigate();
+
+  const handleAuth = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    try {
+      const endpoint = isLoginMode ? "/auth/login" : "/auth/register";
+      const payload = isLoginMode 
+        ? { email: formData.email, password: formData.password } 
+        : formData;
+
+      const res = await axiosInstance.post(endpoint, payload);
+      
+      // Update our custom JWT AuthContext
+      login(res.data.user, res.data.token);
+      toast.success(isLoginMode ? "Welcome back!" : "Account created!");
+      setIsModalOpen(false);
+      navigate("/dashboard");
+    } catch (err) {
+      toast.error(err.response?.data?.message || "Authentication failed");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
-    <div className="bg-gradient-to-br from-base-100 via-base-200 to-base-300">
+    <div className="bg-gradient-to-br from-base-100 via-base-200 to-base-300 min-h-screen">
       {/* NAVBAR */}
       <nav className="bg-base-100/80 backdrop-blur-md border-b border-primary/20 sticky top-0 z-50 shadow-lg">
         <div className="max-w-7xl mx-auto p-4 flex items-center justify-between">
-          {/* LOGO */}
-          <Link
-            to={"/"}
-            className="flex items-center gap-3 hover:scale-105 transition-transform duration-200"
-          >
+          <Link to={"/"} className="flex items-center gap-3 hover:scale-105 transition-transform duration-200">
             <div className="size-10 rounded-xl bg-gradient-to-br from-primary via-secondary to-accent flex items-center justify-center shadow-lg">
               <SquareTerminal className="size-6 text-white" />
             </div>
-
             <div className="flex flex-col">
-              <span className="font-black text-xl bg-gradient-to-r from-primary via-secondary to-accent bg-clip-text text-transparent font-mono tracking-wider">
-                Codely
-              </span>
+              <span className="font-black text-xl bg-gradient-to-r from-primary via-secondary to-accent bg-clip-text text-transparent font-mono tracking-wider">Codely</span>
               <span className="text-xs text-base-content/60 font-medium -mt-1">Code Together</span>
             </div>
           </Link>
 
-        <div className="flex items-center gap-3">
-            {/* THEME TOGGLE */}
+          <div className="flex items-center gap-3">
             <ThemeToggle />
-
-            {/* AUTH BUTTON */}
-            <SignInButton mode="modal">
-                <button className="group px-6 py-3 bg-gradient-to-r from-primary to-secondary rounded-xl text-white font-semibold text-sm shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-105 flex items-center gap-2">
-                <span>Get Started</span>
-                <ArrowRightIcon className="size-4 group-hover:translate-x-0.5 transition-transform" />
-                </button>
-            </SignInButton>
-            </div>
-
+            <button 
+              onClick={() => { setIsLoginMode(true); setIsModalOpen(true); }}
+              className="group px-6 py-3 bg-gradient-to-r from-primary to-secondary rounded-xl text-white font-semibold text-sm shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-105 flex items-center gap-2"
+            >
+              <span>Get Started</span>
+              <ArrowRightIcon className="size-4 group-hover:translate-x-0.5 transition-transform" />
+            </button>
+          </div>
         </div>
       </nav>
 
       {/* HERO SECTION */}
       <div className="max-w-7xl mx-auto px-4 py-20">
         <div className="grid lg:grid-cols-2 gap-12 items-center">
-          {/* LEFT CONTENT */}
           <div className="space-y-8">
             <div className="badge badge-primary badge-lg">
-              <Zap className="size-4" />
-              Real-time Collaboration
+              <Zap className="size-4 mr-1" /> Real-time Collaboration
             </div>
 
             <h1 className="text-5xl lg:text-7xl font-black leading-tight">
-              <span className="bg-gradient-to-r from-primary via-secondary to-accent bg-clip-text text-transparent">
-                Code Together,
-              </span>
-              <br />
-              <span className="text-base-content">Learn Together</span>
+              <span className="bg-gradient-to-r from-primary via-secondary to-accent bg-clip-text text-transparent">Code Together,</span>
+              <br /> <span className="text-base-content">Learn Together</span>
             </h1>
 
             <p className="text-xl text-base-content/70 leading-relaxed max-w-xl">
-              The ultimate platform for collaborative coding interviews and pair programming.
-              Connect face-to-face, code in real-time, and ace your technical interviews.
+              The ultimate platform for collaborative coding interviews and pair programming. Connect face-to-face, code in real-time, and ace your technical interviews.
             </p>
 
-            {/* FEATURE PILLS */}
             <div className="flex flex-wrap gap-3">
-              <div className="badge badge-lg badge-outline">
-                <CheckIcon className="size-4 text-success" />
-                Live Video Chat
-              </div>
-              <div className="badge badge-lg badge-outline">
-                <CheckIcon className="size-4 text-success" />
-                Code Editor
-              </div>
-              <div className="badge badge-lg badge-outline">
-                <CheckIcon className="size-4 text-success" />
-                Multi-Language
-              </div>
+              <div className="badge badge-lg badge-outline"><CheckIcon className="size-4 text-success mr-1" /> Live Video Chat</div>
+              <div className="badge badge-lg badge-outline"><CheckIcon className="size-4 text-success mr-1" /> Code Editor</div>
+              <div className="badge badge-lg badge-outline"><CheckIcon className="size-4 text-success mr-1" /> Multi-Language</div>
             </div>
 
-            {/* CTA Buttons */}
             <div className="flex flex-wrap gap-4">
-              <SignInButton mode="modal">
-                <button className="btn btn-primary btn-lg">
-                  Start Coding Now
-                  <ArrowRightIcon className="size-5" />
-                </button>
-              </SignInButton>
-
+              <button onClick={() => { setIsLoginMode(false); setIsModalOpen(true); }} className="btn btn-primary btn-lg">
+                Start Coding Now <ArrowRightIcon className="size-5" />
+              </button>
               <button className="btn btn-outline btn-lg">
-                <Video className="size-5" />
-                Watch Demo
+                <Video className="size-5" /> Watch Demo
               </button>
             </div>
 
-            {/* STATS */}
+            {/* PRESERVED STATS */}
             <div className="stats stats-vertical lg:stats-horizontal bg-base-100 shadow-lg">
               <div className="stat">
                 <div className="stat-value text-primary">10K+</div>
@@ -121,69 +124,128 @@ function HomePage() {
             </div>
           </div>
 
-          {/* RIGHT IMAGE */}
-          <img
-            src="/hero.png"
-            alt="CodeCollab Platform"
-            className="w-full h-auto rounded-3xl shadow-2xl border-4 border-base-100 hover:scale-105 transition-transform duration-500"
+          <img src="/hero.png" alt="Platform" className="w-full h-auto rounded-3xl shadow-2xl border-4 border-base-100 hover:scale-105 transition-transform duration-500" />
+        </div>
+      </div>
+
+      {/* PRESERVED FEATURES SECTION */}
+      <div className="max-w-7xl mx-auto px-4 py-20 border-t border-base-content/5">
+        <div className="text-center mb-16">
+          <h2 className="text-4xl font-bold mb-4">Everything You Need to <span className="text-primary font-mono">Succeed</span></h2>
+          <p className="text-lg text-base-content/70 max-w-2xl mx-auto">Powerful features designed to make your coding interviews seamless and productive</p>
+        </div>
+
+        <div className="grid md:grid-cols-3 gap-8">
+          <div className="card bg-base-100 shadow-xl border border-primary/5">
+            <div className="card-body items-center text-center">
+              <div className="size-16 bg-primary/10 rounded-2xl flex items-center justify-center mb-4"><Video className="size-8 text-primary" /></div>
+              <h3 className="card-title">HD Video Call</h3>
+              <p className="text-base-content/70">Crystal clear video and audio for seamless communication during interviews</p>
+            </div>
+          </div>
+          <div className="card bg-base-100 shadow-xl border border-primary/5">
+            <div className="card-body items-center text-center">
+              <div className="size-16 bg-primary/10 rounded-2xl flex items-center justify-center mb-4"><Code2Icon className="size-8 text-primary" /></div>
+              <h3 className="card-title">Live Code Editor</h3>
+              <p className="text-base-content/70">Collaborate in real-time with syntax highlighting and multiple language support</p>
+            </div>
+          </div>
+          <div className="card bg-base-100 shadow-xl border border-primary/5">
+            <div className="card-body items-center text-center">
+              <div className="size-16 bg-primary/10 rounded-2xl flex items-center justify-center mb-4"><UsersIcon className="size-8 text-primary" /></div>
+              <h3 className="card-title">Easy Collaboration</h3>
+              <p className="text-base-content/70">Share your screen, discuss solutions, and learn from each other in real-time</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* AUTH MODAL POP-IN */}
+{isModalOpen && (
+  <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-300">
+    <div className="bg-base-100 w-full max-w-md rounded-3xl shadow-2xl p-8 relative animate-in zoom-in-95 duration-200">
+      <button 
+        onClick={() => setIsModalOpen(false)}
+        className="absolute top-4 right-4 p-2 hover:bg-base-200 rounded-full transition-colors"
+      >
+        <X className="size-6" />
+      </button>
+
+      <div className="text-center mb-8">
+        <h2 className="text-3xl font-bold">{isLoginMode ? "Welcome Back" : "Create Account"}</h2>
+        <p className="text-base-content/60 mt-2">
+          {isLoginMode ? "Login to access your dashboard" : "Join the community of developers"}
+        </p>
+      </div>
+
+      <form onSubmit={handleAuth} className="flex flex-col gap-4">
+        {!isLoginMode && (
+          <div className="w-full">
+            <label className="label">
+              <span className="label-text font-bold uppercase text-xs opacity-70">Full Name</span>
+            </label>
+            <input 
+              type="text" 
+              placeholder="John Doe" 
+              className="input input-bordered w-full focus:input-primary" 
+              required
+              onChange={(e) => setFormData({...formData, name: e.target.value})}
+            />
+          </div>
+        )}
+
+        <div className="w-full">
+          <label className="label">
+            <span className="label-text font-bold uppercase text-xs opacity-70">Email Address</span>
+          </label>
+          <input 
+            type="email" 
+            placeholder="name@example.com" 
+            className="input input-bordered w-full focus:input-primary" 
+            required
+            onChange={(e) => setFormData({...formData, email: e.target.value})}
           />
         </div>
-      </div>
 
-      {/* FEATURES SECTION */}
-      <div className="max-w-7xl mx-auto px-4 py-20">
-        <div className="text-center mb-16">
-          <h2 className="text-4xl font-bold mb-4">
-            Everything You Need to <span className="text-primary font-mono">Succeed</span>
-          </h2>
-          <p className="text-lg text-base-content/70 max-w-2xl mx-auto">
-            Powerful features designed to make your coding interviews seamless and productive
-          </p>
+        <div className="w-full">
+          <label className="label">
+            <span className="label-text font-bold uppercase text-xs opacity-70">Password</span>
+          </label>
+          <input 
+            type="password" 
+            placeholder="••••••••" 
+            className="input input-bordered w-full focus:input-primary" 
+            required
+            onChange={(e) => setFormData({...formData, password: e.target.value})}
+          />
         </div>
 
-        {/* FEATURES GRID */}
-        <div className="grid md:grid-cols-3 gap-8">
-          {/* Feature 1 */}
-          <div className="card bg-base-100 shadow-xl">
-            <div className="card-body items-center text-center">
-              <div className="size-16 bg-primary/10 rounded-2xl flex items-center justify-center mb-4">
-                <Video className="size-8 text-primary" />
-              </div>
-              <h3 className="card-title">HD Video Call</h3>
-              <p className="text-base-content/70">
-                Crystal clear video and audio for seamless communication during interviews
-              </p>
-            </div>
-          </div>
+        <button 
+          type="submit" 
+          disabled={loading}
+          className="btn btn-primary w-full mt-2 text-white font-bold shadow-lg"
+        >
+          {loading ? (
+            <span className="loading loading-spinner loading-sm"></span>
+          ) : (
+            isLoginMode ? "Sign In" : "Register"
+          )}
+        </button>
+      </form>
 
-          {/* Feature 2 */}
-          <div className="card bg-base-100 shadow-xl">
-            <div className="card-body items-center text-center">
-              <div className="size-16 bg-primary/10 rounded-2xl flex items-center justify-center mb-4">
-                <Code2Icon className="size-8 text-primary" />
-              </div>
-              <h3 className="card-title">Live Code Editor</h3>
-              <p className="text-base-content/70">
-                Collaborate in real-time with syntax highlighting and multiple language support
-              </p>
-            </div>
-          </div>
+      <div className="divider text-xs opacity-50 uppercase tracking-widest my-6">OR</div>
 
-          {/* Feature 3 */}
-          <div className="card bg-base-100 shadow-xl">
-            <div className="card-body items-center text-center">
-              <div className="size-16 bg-primary/10 rounded-2xl flex items-center justify-center mb-4">
-                <UsersIcon className="size-8 text-primary" />
-              </div>
-              <h3 className="card-title">Easy Collaboration</h3>
-              <p className="text-base-content/70">
-                Share your screen, discuss solutions, and learn from each other in real-time
-              </p>
-            </div>
-          </div>
-        </div>
-      </div>
+      <button 
+        onClick={() => setIsLoginMode(!isLoginMode)}
+        className="text-center w-full text-sm font-bold text-primary hover:text-primary-focus transition-colors"
+      >
+        {isLoginMode ? "Don't have an account? Sign Up" : "Already have an account? Log In"}
+      </button>
+    </div>
+  </div>
+)}
     </div>
   );
 }
+
 export default HomePage;

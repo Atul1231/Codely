@@ -1,11 +1,21 @@
-import { Link, useLocation } from "react-router";
-import { BookOpenIcon, LayoutDashboardIcon, SquareTerminal } from "lucide-react";
-import { UserButton } from "@clerk/clerk-react";
+import { Link, useLocation, useNavigate } from "react-router";
+import { BookOpenIcon, LayoutDashboardIcon, SquareTerminal, LogOutIcon, UserIcon } from "lucide-react";
+import { useAuth } from "../context/AuthContext"; // Updated: Using your custom JWT Auth
 import ThemeToggle from "./ThemeToggle.jsx";
+
 function Navbar() {
   const location = useLocation();
+  const navigate = useNavigate();
+  
+  // Updated: Pulling user data and logout function from AuthContext
+  const { user, logout } = useAuth();
 
   const isActive = (path) => location.pathname === path;
+
+  const handleLogout = () => {
+    logout();
+    navigate("/");
+  };
 
   return (
     <nav className="bg-base-100/80 backdrop-blur-md border-b border-primary/20 sticky top-0 z-50 shadow-lg">
@@ -28,8 +38,9 @@ function Navbar() {
         </Link>
         
         <div className="flex items-center gap-1">
-          {/* PROBLEMS PAGE LINK */}
           <ThemeToggle />
+          
+          {/* PROBLEMS PAGE LINK */}
           <Link
             to={"/problems"}
             className={`px-4 py-2.5 rounded-lg transition-all duration-200 
@@ -37,9 +48,7 @@ function Navbar() {
                 isActive("/problems")
                   ? "bg-primary text-primary-content"
                   : "hover:bg-base-200 text-base-content/70 hover:text-base-content"
-              }
-              
-              `}
+              }`}
           >
             <div className="flex items-center gap-x-2.5">
               <BookOpenIcon className="size-4" />
@@ -55,9 +64,7 @@ function Navbar() {
                 isActive("/dashboard")
                   ? "bg-primary text-primary-content"
                   : "hover:bg-base-200 text-base-content/70 hover:text-base-content"
-              }
-              
-              `}
+              }`}
           >
             <div className="flex items-center gap-x-2.5">
               <LayoutDashboardIcon className="size-4" />
@@ -65,8 +72,32 @@ function Navbar() {
             </div>
           </Link>
 
-          <div className="ml-4 mt-2">
-            <UserButton />
+          {/* CUSTOM USER DROPDOWN (Replaced UserButton) */}
+          <div className="dropdown dropdown-end ml-4">
+            <div tabIndex={0} role="button" className="btn btn-ghost btn-circle avatar border border-primary/20">
+              <div className="size-10 rounded-full bg-base-300 flex items-center justify-center">
+                {user?.profileImage ? (
+                  <img src={user.profileImage} alt={user.name} />
+                ) : (
+                  <UserIcon className="size-6 opacity-50" />
+                )}
+              </div>
+            </div>
+            <ul tabIndex={0} className="mt-3 z-[1] p-2 shadow-2xl menu menu-sm dropdown-content bg-base-100 rounded-box w-52 border border-primary/10">
+              <li className="menu-title px-4 py-2 border-b border-base-content/5 mb-1">
+                <span className="text-xs font-bold uppercase opacity-50">Account</span>
+                <p className="text-sm font-medium text-base-content truncate">{user?.name || "User"}</p>
+              </li>
+              <li>
+                <button 
+                  onClick={handleLogout}
+                  className="text-error hover:bg-error/10 flex items-center justify-between"
+                >
+                  Logout
+                  <LogOutIcon className="size-4" />
+                </button>
+              </li>
+            </ul>
           </div>
         </div>
       </div>
