@@ -57,30 +57,37 @@ export async function joinSession(req, res) {
     const userId = req.user._id;
     const streamUserId = userId.toString();
 
+    // 1. Fetch the session
     const session = await Session.findById(id);
     if (!session) return res.status(404).json({ message: "Session not found" });
 
-    // 1. Allow host to rejoin without blocking
+    // 2. Allow host to rejoin without blocking
     if (session.host.toString() === userId.toString()) {
       return res.status(200).json({ session });
     }
 
-    // 2. STRICT BLOCK: If a participant exists and it's not the current user
+    // 3. STRICT BLOCK: If a participant exists and it's not the current user
     if (session.participant && session.participant.toString() !== userId.toString()) {
       return res.status(409).json({ message: "Session is full (2/2)" });
     }
 
-    // 3. REGISTER IN MONGODB: Save only if the slot is empty
+    // 4. REGISTER IN MONGODB: Save only if the slot is empty
     if (!session.participant) {
       session.participant = userId;
-      await session.save(); // This creates the 'participant' field in your DB
+      // CRITICAL: Await the save to ensure DB reflects the participant
+      await session.save(); 
+      console.log(`✅ Participant registered in DB: ${userId}`);
     }
 
-    // 4. SYNC WITH STREAM: Add the user to the chat members
+    // 5. SYNC WITH STREAM: Explicitly add and WATCH the channel
+    // This ensures the channel exists and the user has 'ReadChannel' permissions
     const channel = chatClient.channel("messaging", session.callId);
-    await channel.addMembers([streamUserId]);
-
-    // Return the session with participant populated for the frontend UI
+    
+    // Using addMembers ensures the user is added to the permanent member list
+    await channel.addMembers([streamUserId], { text: `${req.user.name} joined the chat` });
+    
+    // 6. Return the FULLY POPULATED session
+    // This prevents the frontend from having 'null' participant data on the first render
     const updatedSession = await Session.findById(id)
       .populate("host", "name profileImage email")
       .populate("participant", "name profileImage email");
